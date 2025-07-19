@@ -8,8 +8,8 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { ENDPOINTS } from "../../utils/api";
 
 type LoginInputs = {
   email: string;
@@ -23,9 +23,26 @@ const Login = () => {
     register,
   } = useForm<LoginInputs>();
 
-  const onSubmit: SubmitHandler<LoginInputs> = (data) => {
-    console.log("Email: ", data.email);
-    console.log("Password: ", data.password);
+  const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
+    try {
+      const response = await fetch(ENDPOINTS.auth.login, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error: response is not ok");
+      }
+
+      const result = await response.json();
+
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -53,9 +70,11 @@ const Login = () => {
             )}
 
             <Button type="submit">Login</Button>
-            <ChakraLink alignSelf="flex-end">
-              <Link to="/register">Sign Up</Link>
-            </ChakraLink>
+            <Link to="/register">
+              <ChakraLink alignSelf="flex-end" as="div">
+                Register
+              </ChakraLink>
+            </Link>
           </Stack>
         </form>
       </Stack>

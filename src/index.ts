@@ -1,15 +1,15 @@
-import "dotenv/config"
-
-const PORT = process.env.PORT || 4000;
-
-import express from 'express'
+import express from "express";
+import cors from "cors";
 const app = express();
 
-app.get("/", (req, res) => {
-  res.sendStatus(200).json({message: "/ is working properly"})
-})
+import { loginRouter } from "./routes/auth.route.ts";
+const PORT = process.env.PORT || 4000;
+
+app.use(cors());
+app.use(express.json());
+
+app.use("/auth", loginRouter);
 
 app.listen(PORT, () => {
-  console.log(`Listening on PORT ${PORT}`)
-})
-
+  console.log(`Listening on PORT ${PORT}`);
+});
