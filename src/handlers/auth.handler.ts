@@ -2,12 +2,26 @@ import { Request, Response } from "express";
 import { hash, genSalt, compare } from "bcrypt";
 import { prisma } from "../utils/db";
 
+declare module "express-session" {
+  interface SessionData {
+    userId: number;
+  }
+}
+
 type LoginBody = {
   email: string;
   password: string;
 };
 
 const loginHandler = async (req: Request, res: Response) => {
+  if (req.session.userId) {
+    res
+      .status(400)
+      .json({ success: false, message: "You're already logged in" });
+
+    return;
+  }
+
   const data: LoginBody = req.body;
 
   if (!data.email.trim() || !data.password)
@@ -21,12 +35,29 @@ const loginHandler = async (req: Request, res: Response) => {
   });
 
   if (!user) {
-    res.sendStatus(400).json({ success: false, message: "No user found" });
+    res.status(400).json({ success: false, message: "No user found" });
     return;
   }
 
+  const isPasswordCorrect = await compare(data.password, user.password);
+  if (!isPasswordCorrect) {
+    res
+      .status(400)
+      .json({ success: false, message: "Your email or password is incorrect" });
+    return;
+  }
 
-  console.log(data);
+  // Create a session and store it
+  req.session.userId = user.id;
+
+  res.status(200).json({
+    success: true,
+    message: "Logged in",
+    user: {
+      id: user.id,
+      email: user.email,
+    },
+  });
 };
 
 const registerHandler = async (req: Request, res: Response) => {
@@ -44,9 +75,7 @@ const registerHandler = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      res
-        .sendStatus(400)
-        .json({ success: false, message: "User already exists" });
+      res.status(400).json({ success: false, message: "User already exists" });
 
       return;
     }
@@ -55,7 +84,7 @@ const registerHandler = async (req: Request, res: Response) => {
     const hashedPassword = await hash(data.password, salt);
 
     // Save the password in the database along with salt
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: data.email,
         password: hashedPassword,
@@ -63,10 +92,37 @@ const registerHandler = async (req: Request, res: Response) => {
       },
     });
 
-    res.sendStatus(200).json({ success: true, message: "User registered" });
+    // Log the user in
+    req.session.userId = user.id;
+
+    res.status(200).json({
+      success: true,
+      message: "User registered",
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
   } catch (error) {
-    res.sendStatus(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-export { loginHandler, registerHandler };
+const logoutHandler = async (req: Request, res: Response) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ success: false, message: "Could not log out" });
+      }
+    });
+
+    res.clearCookie("connect.sid");
+    res.status(200).json({ success: true, message: "Logged out" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export { loginHandler, registerHandler, logoutHandler };

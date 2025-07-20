@@ -7,16 +7,31 @@ import {
   Link as ChakraLink,
   Text,
 } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { ENDPOINTS } from "../../utils/api";
+import { useUserStore } from "../../store/useUserStore";
 
 type LoginInputs = {
   email: string;
   password: string;
 };
 
+type User = {
+  id: number;
+  email: string;
+};
+
+type LoginResponse = {
+  success: boolean;
+  message: string;
+  user: User;
+};
+
 const Login = () => {
+  const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser);
+
   const {
     handleSubmit,
     formState: { errors },
@@ -37,9 +52,10 @@ const Login = () => {
         throw new Error("Error: response is not ok");
       }
 
-      const result = await response.json();
+      const result: LoginResponse = await response.json();
 
-      console.log(result);
+      setUser(result.user);
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
     }

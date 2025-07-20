@@ -11,6 +11,8 @@ import {
 import { Link } from "react-router-dom";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { ENDPOINTS } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../../store/useUserStore";
 
 type RegisterInputs = {
   email: string;
@@ -18,7 +20,21 @@ type RegisterInputs = {
   confirmPassword: string;
 };
 
+type User = {
+  id: number;
+  email: string;
+};
+
+type LoginResponse = {
+  success: boolean;
+  message: string;
+  user: User;
+};
+
 const Register = () => {
+  const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser);
+
   const {
     handleSubmit,
     formState: { errors },
@@ -37,7 +53,7 @@ const Register = () => {
         },
         body: JSON.stringify({
           email: data.email,
-          password: data.password
+          password: data.password,
         }),
       });
 
@@ -45,8 +61,10 @@ const Register = () => {
         throw new Error("Error: response is not ok");
       }
 
-      const result = await response.json();
-      console.log(result);
+      const result: LoginResponse = await response.json();
+
+      setUser(result.user);
+      navigate("/dashboard")
     } catch (error) {
       console.error(error);
     }
