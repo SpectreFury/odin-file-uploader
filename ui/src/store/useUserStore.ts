@@ -15,4 +15,4 @@ const useUserStore = create<UserStore>((set) => ({
   setUser: (user) => set(() => ({ user })),
 }));
 
-export { useUserStore };
+export {  useUserStore };

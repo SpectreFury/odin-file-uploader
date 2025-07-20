@@ -1,30 +1,44 @@
-import { Button, Container, Flex } from "@chakra-ui/react";
+import { Text, Container, Stack, FileUpload, Button } from "@chakra-ui/react";
+import { useState } from "react";
 import { ENDPOINTS } from "../../utils/api";
-import { useUserStore } from "../../store/useUserStore";
-import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const setUser = useUserStore((state) => state.setUser);
-  const navigate = useNavigate();
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleLogout = async () => {
-    const response = await fetch(ENDPOINTS.auth.logout, {
+  const handleUpload = async () => {
+    const response = await fetch(ENDPOINTS.upload.file, {
       method: "POST",
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ file: file}),
     });
 
-    if (!response.ok) throw new Error("Error: response is not ok");
+    if (!response.ok) {
+      console.log("Error");
+    }
 
-    setUser(null)
-    navigate("/login");
+    const result = await response.json();
+    console.log(result);
   };
 
   return (
     <Container>
-      <Flex justify="center" align="center">
-        Logged in
-      </Flex>
+      <Stack mt={10} maxW="xl">
+        <Text fontWeight="medium">Upload file that you want to save</Text>
+        <FileUpload.Root>
+          <FileUpload.HiddenInput
+            onChange={(e) => setFile(e.target.files && e.target.files[0])}
+          />
+          <FileUpload.Trigger asChild>
+            <Button variant="outline">Upload File</Button>
+          </FileUpload.Trigger>
+          <FileUpload.List showSize clearable />
+        </FileUpload.Root>
 
-      <Button bg="red.500" onClick={handleLogout}>Log out</Button>
+        <Button onClick={handleUpload}>Submit</Button>
+      </Stack>
     </Container>
   );
 };

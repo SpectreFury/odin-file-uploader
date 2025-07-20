@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { loginHandler, logoutHandler, registerHandler } from "../handlers/auth.handler";
+import { loginHandler, logoutHandler, meHandler, registerHandler } from "../handlers/auth.handler";
 
 const authRouter = Router();
+
+authRouter.get("/me", meHandler)
 
 authRouter.post("/login", loginHandler);
 authRouter.post("/register", registerHandler);
