@@ -1,8 +1,20 @@
 import { Router } from "express";
 import { uploadHandler } from "../handlers/upload.handler";
+import multer from "multer";
 
-const uploadRouter = Router()
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
 
-uploadRouter.post("/", uploadHandler)
+const upload = multer({ storage: storage })
 
-export {uploadRouter}
+const uploadRouter = Router();
+
+uploadRouter.post("/", upload.single("file"), uploadHandler);
+
+export { uploadRouter };

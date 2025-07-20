@@ -6,13 +6,15 @@ const Dashboard = () => {
   const [file, setFile] = useState<File | null>(null);
 
   const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
     const response = await fetch(ENDPOINTS.upload.file, {
       method: "POST",
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ file: file}),
+      credentials: "include",
+      body: formData,
     });
 
     if (!response.ok) {
