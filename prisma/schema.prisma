@@ -20,6 +20,17 @@ model User {
   name String?
   password String 
   salt  String
+  files File[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model File {
+  id Int @id @default(autoincrement())
+  name String
+  url String
+  authorId Int
+  author User @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

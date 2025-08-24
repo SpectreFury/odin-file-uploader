@@ -6,23 +6,24 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Navbar from "./components/Navbar";
 import { useEffect } from "react";
 import { ENDPOINTS } from "./utils/api";
+import {Toaster} from 'sonner'
 
 function App() {
   useEffect(() => {
     const getUser = async () => {
       const response = await fetch(ENDPOINTS.auth.me, {
-        credentials: 'include',
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
         console.log("Error: not authenticated");
       }
 
-      const result = await response.json()
-      console.log(result)
+      const result = await response.json();
+      console.log(result);
     };
 
     getUser();
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <main>
+      <Toaster/>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />}></Route>

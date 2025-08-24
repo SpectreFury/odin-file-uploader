@@ -1,28 +1,36 @@
 import { Text, Container, Stack, FileUpload, Button } from "@chakra-ui/react";
 import { useState } from "react";
 import { ENDPOINTS } from "../../utils/api";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) return;
+    setLoading(true);
 
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      if (!file) return;
 
-    const response = await fetch(ENDPOINTS.upload.file, {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
+      const formData = new FormData();
+      formData.append("file", file);
 
-    if (!response.ok) {
-      console.log("Error");
+      const response = await fetch(ENDPOINTS.upload.file, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Error: Response is not ok");
+      }
+
+      toast.success("File has been successfully uploaded")
+    } catch (error: any) {
+      toast.error(error.message)
     }
-
-    const result = await response.json();
-    console.log(result);
+    setLoading(false);
   };
 
   return (
@@ -39,7 +47,7 @@ const Dashboard = () => {
           <FileUpload.List showSize clearable />
         </FileUpload.Root>
 
-        <Button onClick={handleUpload}>Submit</Button>
+        <Button onClick={handleUpload} disabled={loading}>Submit</Button>
       </Stack>
     </Container>
   );
