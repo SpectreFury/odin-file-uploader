@@ -4,7 +4,7 @@ import Card from "../components/Card";
 import { useForm, type FieldValues } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Signup = () => {
   const {
     register,
     handleSubmit,
@@ -15,37 +15,23 @@ const Login = () => {
 
   const onSubmit = async (data: FieldValues) => {
     try {
-      const { email, password } = data;
-
-      if (!email || !password) {
-        return;
-      }
-
-      if (!email.trim() || !password.trim()) {
-        throw new Error("Email and password are required");
-      }
-
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch("http://localhost:3000/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
+          email: data.email,
+          password: data.password,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Invalid email or password");
+        throw new Error("Signup failed");
       }
 
       const result = await response.json();
-      if (result.success) {
-        localStorage.setItem("token", result.token);
-
-        navigate("/dashboard");
-      }
+      console.log(result);
     } catch (error) {
       console.error(error);
     }
@@ -53,7 +39,6 @@ const Login = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token) {
       navigate("/dashboard");
     }
@@ -64,7 +49,7 @@ const Login = () => {
       <div className="mt-40">
         <Card>
           <h1 className="text-center text-4xl font-semibold text-emerald-600">
-            Login
+            Signup
           </h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col mt-2 gap-2">
@@ -90,11 +75,11 @@ const Login = () => {
               type="submit"
               className="px-6 py-2 bg-emerald-600 rounded-md text-slate-200 font-semibold text-lg mt-4 hover:bg-emerald-700 cursor-pointer border-neutral-200"
             >
-              Login
+              Signup
             </button>
 
             <p className="">
-              Don't have an account? <Link to="/signup">Sign up</Link>
+              Already have an account? <Link to="/login">Login</Link>
             </p>
           </form>
         </Card>
@@ -103,4 +88,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

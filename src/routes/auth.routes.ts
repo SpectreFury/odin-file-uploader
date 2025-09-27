@@ -17,12 +17,37 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) throw new Error("All fields are required");
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: email.trim(),
+      },
+    });
+
+    if (!existingUser) throw new Error("User not found");
+
+    const isPasswordValid = await bcrypt.compare(
+      password.trim(),
+      existingUser.password,
+    );
+
+    if (!isPasswordValid) throw new Error("Invalid password");
+
+    const token = jwt.sign({ id: existingUser.id }, process.env.SECRET_KEY!, {
+      expiresIn: "1d",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+    });
   } catch (error: any) {
     console.log("Login error: ", error);
 
     return res.status(500).json({
       success: false,
-      message: error.message(),
+      message: error,
     });
   }
 });
@@ -36,6 +61,21 @@ router.post("/signup", async (req, res) => {
       res.status(400).json({
         success: false,
         message: "All fields are required",
+      });
+
+      return;
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: email.trim(),
+      },
+    });
+
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        message: "Email already exists",
       });
 
       return;
